@@ -305,8 +305,10 @@ class CornersProblem(search.SearchProblem):
         '''
             INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
         '''
-        
-        util.raiseNotDefined()
+        # first state : ((x_init, y_init), (F,F,F,F)) 
+        # --> it is the initial position of pacman and 4 booleans that represent the 4 corners (F => non visited)
+        return (self.startingPosition, (False, False, False, False))
+
 
     def isGoalState(self, state):
         """
@@ -316,8 +318,9 @@ class CornersProblem(search.SearchProblem):
         '''
             INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
         '''
-
-        util.raiseNotDefined()
+        _, visited_corners = state 
+        return all(visited_corners) # return True if all corners are visited
+    
 
     def getSuccessors(self, state):
         """
@@ -331,21 +334,28 @@ class CornersProblem(search.SearchProblem):
         """
 
         successors = []
+        current_position, visited_corners = state
+
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-            # Add a successor state to the successor list if the action is legal
-            # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
-           
             '''
                 INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
             '''
+            #   calculate the next position
+            x,y = current_position
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            if not self.walls[nextx][nexty] :
+                # Check if the new position is a corner and update visited_corners
+                new_visited_corners = list(visited_corners)
+                if (nextx, nexty) in self.corners:
+                    corner_index = self.corners.index((nextx, nexty))
+                    new_visited_corners[corner_index] = True
 
+                # Add the successor state
+                successors.append(((nextx, nexty), tuple(new_visited_corners), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
-        return successors
+        return [((next_position, new_visited_corners), action, cost) for next_position, new_visited_corners, action, cost in successors]
 
     def getCostOfActions(self, actions):
         """

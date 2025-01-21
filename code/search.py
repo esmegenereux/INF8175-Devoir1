@@ -22,6 +22,7 @@ from pacman import GameState
 from typing import Any, Tuple,List
 import util
 
+
 """
 In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
@@ -98,7 +99,33 @@ def depthFirstSearch(problem:SearchProblem)->List[Direction]:
 
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 1 ICI
+
     '''
+    from util import Stack
+
+    stack = Stack() # initialize Stack for DFS
+    visited = set() # initialize V
+
+    start_state = problem.getStartState()
+    stack.push((start_state, [])) # push the first state in the fringe, with an empty path
+
+    while not stack.isEmpty():
+        current_state, path = stack.pop() # Pop the current state and the path taken to reach it
+
+        # If current state is the goal => return path
+        if problem.isGoalState(current_state):
+            return path
+
+        # If the state has not been visited, process it
+        if current_state not in visited:
+            visited.add(current_state)
+
+            # Get successors and push them onto the stack
+            for successor, action, _ in problem.getSuccessors(current_state):
+                if successor not in visited:
+                    stack.push((successor, path + [action]))
+
+    return []  # Return an empty path if no solution is found
 
     util.raiseNotDefined()
 
@@ -110,8 +137,32 @@ def breadthFirstSearch(problem:SearchProblem)->List[Direction]:
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 2 ICI
     '''
+    from util import Queue
 
-    util.raiseNotDefined()
+    queue = Queue() # initialize Queue for DFS
+    visited = set() # initialize V
+
+    start_state = problem.getStartState()
+    queue.push((start_state, [])) # push the first state in the fringe, with an empty path
+
+    while not queue.isEmpty():
+        current_state, path = queue.pop() # Pop the current state and the path taken to reach it
+
+        # If current state is the goal => return path
+        if problem.isGoalState(current_state):
+            return path
+
+        # If the state has not been visited, process it
+        if current_state not in visited:
+            visited.add(current_state)
+
+            # Get successors and push them into the queue
+            for successor, action, _ in problem.getSuccessors(current_state):
+                if successor not in visited:
+                    queue.push((successor, path + [action]))
+
+    return []  # Return an empty path if no solution is found
+
 
 def uniformCostSearch(problem:SearchProblem)->List[Direction]:
     """Search the node of least total cost first."""
@@ -120,8 +171,36 @@ def uniformCostSearch(problem:SearchProblem)->List[Direction]:
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 3 ICI
     '''
+    from util import PriorityQueue
+    
+    priority_queue = PriorityQueue() # Initialize the priority queue
+    visited = set() # Initialize the visited set
 
-    util.raiseNotDefined()
+    # Push the start state with cost 0 and an empty path
+    start_state = problem.getStartState()
+    priority_queue.push((start_state, [], 0), 0)  # (current state, path, cost), priority = 0
+
+    while not priority_queue.isEmpty():
+        # Pop the state with the lowest total cost
+        current_state, path, cost = priority_queue.pop()
+
+        # If the current state is the goal, return the path
+        if problem.isGoalState(current_state):
+            return path
+
+        # If the state has not been visited, process it
+        if current_state not in visited:
+            visited.add(current_state)
+
+            # Get successors and push them into the priority queue
+            for successor, action, step_cost in problem.getSuccessors(current_state):
+                if successor not in visited:
+                    total_cost = cost + step_cost
+                    priority_queue.push((successor, path + [action], total_cost), total_cost)
+
+    return []
+
+
 
 def nullHeuristic(state:GameState, problem:SearchProblem=None)->List[Direction]:
     """
@@ -135,6 +214,38 @@ def aStarSearch(problem:SearchProblem, heuristic=nullHeuristic)->List[Direction]
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 4 ICI
     '''
+    
+    from util import PriorityQueue
+
+    # Initialize the priority queue, visited set
+    priority_queue = PriorityQueue()
+    visited = set()
+
+    # Push start state with cost 0 and empty path
+    start_state = problem.getStartState()
+    priority_queue.push((start_state, [], 0), 0)  # (current state, path, cost), priority => 0
+
+    while not priority_queue.isEmpty():
+        # Pop the state with the lowest f(n) value
+        current_state, path, cost = priority_queue.pop()
+
+        # If the current state is the goal, return the path
+        if problem.isGoalState(current_state):
+            return path
+
+        # If the state has not been visited, process it
+        if current_state not in visited:
+            visited.add(current_state)
+
+            # Get successors and push them into the priority queue.
+            for successor, action, step_cost in problem.getSuccessors(current_state):
+                if successor not in visited:
+                    g_cost = cost + step_cost  # g(n)
+                    h_cost = heuristic(successor, problem)  # h(n)
+                    f_cost = g_cost + h_cost  # f(n)
+                    priority_queue.push((successor, path + [action], g_cost), f_cost)
+
+    return []  # Return empty path if no solution is found
 
     util.raiseNotDefined()
 
