@@ -352,10 +352,11 @@ class CornersProblem(search.SearchProblem):
                     new_visited_corners[corner_index] = True
 
                 # Add the successor state
-                successors.append(((nextx, nexty), tuple(new_visited_corners), action, 1))
+                successor =((nextx, nexty), tuple(new_visited_corners))
+                successors.append((successor, action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
-        return [((next_position, new_visited_corners), action, cost) for next_position, new_visited_corners, action, cost in successors]
+        return successors
 
     def getCostOfActions(self, actions):
         """
@@ -389,8 +390,21 @@ def cornersHeuristic(state, problem):
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 6 ICI
     '''
-    
-    return 0
+    current_position, visited_corners = state
+    unvisited = [corner for i, corner in enumerate(corners) if (visited_corners[i]) == False]
+    total_cost = 0
+
+    if not unvisited:
+        return total_cost  # All corners have been visited, so no cost left (total_cost = 0)
+
+    while unvisited: # visit the closest corners to the current_position
+        closest_corner = min(unvisited, key=lambda corner: util.manhattanDistance(current_position, corner))
+        total_cost += util.manhattanDistance(current_position, closest_corner) # estimates the TOTAL cost to visit ALL unvisited corners
+        current_position = closest_corner
+        unvisited.remove(closest_corner)
+
+    return total_cost
+
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
