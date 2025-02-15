@@ -391,17 +391,20 @@ def cornersHeuristic(state, problem):
         INSÉREZ VOTRE SOLUTION À LA QUESTION 6 ICI
     '''
     current_position, visited_corners = state
-    unvisited = [corner for i, corner in enumerate(corners) if (visited_corners[i]) == False]
+    unvisited_corners = [corner for i, corner in enumerate(corners) if (visited_corners[i]) == False]
+
+    if not unvisited_corners:
+        return 0  # All corners have been visited, so no cost left
+
     total_cost = 0
+    while unvisited_corners: # visit the closest corners to the current_position
+        # manhattanDistance is admissible because it always underestimates the true distance the pacman needs to travel
+        closest_corner = min(unvisited_corners, key=lambda corner: util.manhattanDistance(current_position, corner))
 
-    if not unvisited:
-        return total_cost  # All corners have been visited, so no cost left (total_cost = 0)
-
-    while unvisited: # visit the closest corners to the current_position
-        closest_corner = min(unvisited, key=lambda corner: util.manhattanDistance(current_position, corner))
-        total_cost += util.manhattanDistance(current_position, closest_corner) # estimates the TOTAL cost to visit ALL unvisited corners
+        # Estimate the TOTAL cost to visit ALL unvisited corners
+        total_cost += util.manhattanDistance(current_position, closest_corner)
         current_position = closest_corner
-        unvisited.remove(closest_corner)
+        unvisited_corners.remove(closest_corner)
 
     return total_cost
 
@@ -496,12 +499,36 @@ def foodHeuristic(state, problem: FoodSearchProblem):
     Subsequent calls to this heuristic can access
     problem.heuristicInfo['wallCount']
     """
-    position, foodGrid = state
+    current_position, foodGrid = state
 
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
     '''
+    food_positions = foodGrid.asList()
+    if not food_positions:
+        return 0
 
+    # When there's only one food, the manhattan distance is admissible and a simple solution
+    if len(food_positions) == 1:
+        return util.manhattanDistance(current_position, food_positions[0])
 
-    return 0
+    # ---------------------------------------------------- #
+    # --- Minimum Spanning Tree using Prim's algorithm --- #
+    # ---------------------------------------------------- #
+    nodes = [current_position] + food_positions # we need to count Pacman's position as a node in the tree
+    if not nodes:
+        return 0
 
+    remaining_nodes = set(nodes)
+    current_node = remaining_nodes.pop()  # Start from any node
+    MST_cost = 0
+
+    while remaining_nodes:
+        # Find the nearest neighbor to the current MST
+        nearest_node = min(remaining_nodes, key=lambda node: util.manhattanDistance(current_node, node))
+        cost = util.manhattanDistance(current_node, nearest_node)
+        MST_cost += cost
+        current_node = nearest_node
+        remaining_nodes.remove(nearest_node)
+
+    return MST_cost
