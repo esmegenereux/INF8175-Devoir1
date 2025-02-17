@@ -471,64 +471,49 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchFunction = lambda prob: search.aStarSearch(prob, foodHeuristic)
         self.searchType = FoodSearchProblem
 
-def foodHeuristic(state, problem: FoodSearchProblem):
+from util import manhattanDistance
+from scipy.spatial import distance_matrix
+import numpy as np
+
+def minimum_spanning_tree_cost(points):
+    """Calcule le coût de l'Arbre Couvrant Minimal (MST) pour relier les points."""
+    if len(points) <= 1:
+        return 0
+    
+    dist_matrix = distance_matrix(points, points)
+    num_points = len(points)
+    
+    visited = set([0])
+    edges = list(enumerate(dist_matrix[0]))
+    total_cost = 0
+    
+    while len(visited) < num_points:
+        edges.sort(key=lambda x: x[1])  # Trier les arêtes par coût croissant
+        for idx, cost in edges:
+            if idx not in visited:
+                visited.add(idx)
+                total_cost += cost
+                edges.extend(enumerate(dist_matrix[idx]))
+                break
+    
+    return total_cost
+
+def foodHeuristic(state, problem):
     """
-    Your heuristic for the FoodSearchProblem goes here.
-
-    This heuristic must be consistent to ensure correctness.  First, try to come
-    up with an admissible heuristic; almost all admissible heuristics will be
-    consistent as well.
-
-    If using A* ever finds a solution that is worse uniform cost search finds,
-    your heuristic is *not* consistent, and probably not admissible!  On the
-    other hand, inadmissible or inconsistent heuristics may find optimal
-    solutions, so be careful.
-
-    The state is a tuple ( pacmanPosition, foodGrid ) where foodGrid is a Grid
-    (see game.py) of either True or False. You can call foodGrid.asList() to get
-    a list of food coordinates instead.
-
-    If you want access to info like walls, capsules, etc., you can query the
-    problem.  For example, problem.walls gives you a Grid of where the walls
-    are.
-
-    If you want to *store* information to be reused in other calls to the
-    heuristic, there is a dictionary called problem.heuristicInfo that you can
-    use. For example, if you only want to count the walls once and store that
-    value, try: problem.heuristicInfo['wallCount'] = problem.walls.count()
-    Subsequent calls to this heuristic can access
-    problem.heuristicInfo['wallCount']
+    Heuristique avancée pour le FoodSearchProblem basée sur :
+    - La distance de Manhattan au point de nourriture le plus proche
+    - Le coût du MST reliant tous les points de nourriture
     """
-    current_position, foodGrid = state
-
-    '''
-        INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
-    '''
+    position, foodGrid = state
     food_positions = foodGrid.asList()
+    
     if not food_positions:
-        return 0
-
-    # When there's only one food, the manhattan distance is admissible and a simple solution
-    if len(food_positions) == 1:
-        return util.manhattanDistance(current_position, food_positions[0])
-
-    # ---------------------------------------------------- #
-    # --- Minimum Spanning Tree using Prim's algorithm --- #
-    # ---------------------------------------------------- #
-    nodes = [current_position] + food_positions # we need to count Pacman's position as a node in the tree
-    if not nodes:
-        return 0
-
-    remaining_nodes = set(nodes)
-    current_node = remaining_nodes.pop()  # Start from any node
-    MST_cost = 0
-
-    while remaining_nodes:
-        # Find the nearest neighbor to the current MST
-        nearest_node = min(remaining_nodes, key=lambda node: util.manhattanDistance(current_node, node))
-        cost = util.manhattanDistance(current_node, nearest_node)
-        MST_cost += cost
-        current_node = nearest_node
-        remaining_nodes.remove(nearest_node)
-
-    return MST_cost
+        return 0  # Plus de nourriture à collecter
+    
+    # Distance au point de nourriture le plus proche
+    min_food_distance = min(manhattanDistance(position, food) for food in food_positions)
+    
+    # Coût de l'Arbre Couvrant Minimal pour relier toutes les nourritures restantes
+    mst_cost = minimum_spanning_tree_cost(food_positions)
+    
+    return min_food_distance + mst_cost
