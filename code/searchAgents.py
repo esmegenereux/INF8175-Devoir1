@@ -394,19 +394,21 @@ def cornersHeuristic(state, problem):
     unvisited_corners = [corner for i, corner in enumerate(corners) if (visited_corners[i]) == False]
 
     if not unvisited_corners:
-        return 0  # All corners have been visited, so no cost left
+        return 0  # All corners have been visited, so no cost
 
-    total_cost = 0
-    while unvisited_corners: # visit the closest corners to the current_position
+    total_cost_to_visit_all_unvisited_corners = 0
+    while unvisited_corners:
+        # We must visit the closest corners to the current_position first
         # manhattanDistance is admissible because it always underestimates the true distance the pacman needs to travel
         closest_corner = min(unvisited_corners, key=lambda corner: util.manhattanDistance(current_position, corner))
 
-        # Estimate the TOTAL cost to visit ALL unvisited corners
-        total_cost += util.manhattanDistance(current_position, closest_corner)
+        total_cost_to_visit_all_unvisited_corners += util.manhattanDistance(current_position, closest_corner)
+
         current_position = closest_corner
         unvisited_corners.remove(closest_corner)
 
-    return total_cost
+    # The total manhattanDistance never overestimates the total distance to visit unvisited all corners
+    return total_cost_to_visit_all_unvisited_corners
 
 
 class AStarCornersAgent(SearchAgent):
@@ -545,10 +547,11 @@ def foodHeuristic(state, problem):
     if len(food_positions) == 1:
         return util.manhattanDistance(current_position, food_positions[0])
     
-    # Manhattan distance to the closest point of food
+    # Manhattan distance between Pacman and the closest point of food
     min_food_distance = min(util.manhattanDistance(current_position, food) for food in food_positions)
     
-    # Minimum spanning Tree algorithm used to find the shortest path to visit all nodes (food_positions)
+    # Minimum spanning Tree algorithm used to find the shortest path to eat all the food
     mst_cost = minimum_spanning_tree_cost(food_positions)
-    
+
+    # We return the distance between pacman and the food closest to him and the MST cost between all food_nodes
     return min_food_distance + mst_cost
