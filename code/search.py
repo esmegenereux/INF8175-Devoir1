@@ -101,34 +101,29 @@ def depthFirstSearch(problem:SearchProblem)->List[Direction]:
         INSÉREZ VOTRE SOLUTION À LA QUESTION 1 ICI
 
     '''
-    from util import Stack
+    stack = util.Stack()
+    visited = set()
 
-    stack = Stack() # initialize Stack for DFS
-    visited = set() # initialize V
-
-    start_state = problem.getStartState()
-    stack.push((start_state, [])) # push the first state in the fringe, with an empty path
+    start_position = problem.getStartState()
+    stack.push((start_position, [])) # pushes the first state in the fringe, with an empty path
 
     while not stack.isEmpty():
-        current_state, path = stack.pop() # Pop the current state and the path taken to reach it
+        current_pos, path = stack.pop() # Pop the current position and the path taken to reach it
 
-        # If current state is the goal => return path
-        if problem.isGoalState(current_state):
+        # Verify if the current state is the goal state, in which case we can stop
+        if problem.isGoalState(current_pos):
             return path
+        else:
+            # Verify that the state has not already been visited, in which case we must process it
+            if current_pos not in visited:
+                visited.add(current_pos)
 
-        # If the state has not been visited, process it
-        if current_state not in visited:
-            visited.add(current_state)
-
-            # Get successors and push them onto the stack
-            for successor, action, _ in problem.getSuccessors(current_state):
-                if successor not in visited:
-                    stack.push((successor, path + [action]))
+                # Get successors and push them onto the stack
+                for successor_pos, action, cost in problem.getSuccessors(current_pos):
+                    if successor_pos not in visited:
+                        stack.push((successor_pos, path + [action]))
 
     return []  # Return an empty path if no solution is found
-
-    util.raiseNotDefined()
-
 
 def breadthFirstSearch(problem:SearchProblem)->List[Direction]:
     """Search the shallowest nodes in the search tree first."""
@@ -137,29 +132,27 @@ def breadthFirstSearch(problem:SearchProblem)->List[Direction]:
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 2 ICI
     '''
-    from util import Queue
-
-    queue = Queue() # initialize Queue for DFS
-    visited = set() # initialize V
+    queue = util.Queue()
+    visited = set()
 
     start_state = problem.getStartState()
     queue.push((start_state, [])) # push the first state in the fringe, with an empty path
 
     while not queue.isEmpty():
-        current_state, path = queue.pop() # Pop the current state and the path taken to reach it
+        current_pos, path = queue.pop() # Pop the current position and the path taken to reach it
 
-        # If current state is the goal => return path
-        if problem.isGoalState(current_state):
+        # Verify if the current state is the goal state, in which case we can stop
+        if problem.isGoalState(current_pos):
             return path
+        else:
+            # Verify that the state has not already been visited, in which case we must process it
+            if current_pos not in visited:
+                visited.add(current_pos)
 
-        # If the state has not been visited, process it
-        if current_state not in visited:
-            visited.add(current_state)
-
-            # Get successors and push them into the queue
-            for successor, action, _ in problem.getSuccessors(current_state):
-                if successor not in visited:
-                    queue.push((successor, path + [action]))
+                # Get successors and push them into the queue
+                for successor_pos, action, cost in problem.getSuccessors(current_pos):
+                    if successor_pos not in visited:
+                        queue.push((successor_pos, path + [action]))
 
     return []  # Return an empty path if no solution is found
 
