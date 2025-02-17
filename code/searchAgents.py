@@ -472,36 +472,42 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchType = FoodSearchProblem
 
 
-# this fn compute the cost of the MST by using Prim's algorithm
-def min_spanning_tree_cost(positions):
-    if len(positions) <= 1 :
-        return 0
-    
-    num_positions = len(positions)
+def minimum_spanning_tree_cost(nodes):
+    """
+        Minimum Spanning Tree (MST) using Prim's algorithm
+    """
     visited = set()
-    edges = []  # list of the edges
-    total_cost = 0
-    
-    # We begin from the first pos
-    visited.add(positions[0])
-    for position in positions[1:]:
-        edges.append((util.manhattanDistance(positions[0], position), positions[0], position))
-    
-    while num_positions > len(visited):
-        # We have to find the edge with the minimal cost connecting a new point
-        edges.sort()
-        for cost, _, next_position in edges:
-            if next_position not in visited:
-                visited.add(next_position)
-                total_cost = total_cost + cost
+    edges = []
+    MST_cost = 0
 
-                # Let's add the new connections
-                for point in positions:
-                    if point not in visited:
-                        edges.append((util.manhattanDistance(next_position, point), next_position, point))
+    first_food = nodes[0]
+    visited.add(first_food)
+    for node_i in nodes[1:]:
+        edges.append({ 'manhattanDist' : util.manhattanDistance(nodes[0], node_i), 'currentNode' : first_food,
+                       'nextNode' : node_i})
+
+    while len(visited) < len(nodes):
+        # Sort edges by Manhattan distance
+        edges.sort(key=lambda edge: edge["manhattanDist"])
+
+        for edge in edges:  # Loop over dictionaries properly
+            cost = edge["manhattanDist"]
+            next_node = edge["nextNode"]
+
+            if next_node not in visited:
+                visited.add(next_node)
+                MST_cost += cost
+
+                for node_i in nodes:
+                    if node_i not in visited:
+                        edges.append({
+                            'manhattanDist': util.manhattanDistance(next_node, node_i),
+                            'currentNode': next_node,
+                            'nextNode': node_i
+                        })
                 break
-    
-    return total_cost
+
+    return MST_cost
 
 def foodHeuristic(state, problem):
     """
@@ -530,21 +536,19 @@ def foodHeuristic(state, problem):
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
     '''
-
     food_positions = foodGrid.asList()
-    
-    if not food_positions:
-        return 0  # there is no more food to collect
-    
-    dist = []
-    for food in food_positions :
-        d = util.manhattanDistance(current_position, food)
-        dist.append(d)
 
-    # this is the distance to the nearest point of food
-    min_dist = min (util.manhattanDistance(current_position, food) for food in food_positions)
+    if not food_positions:
+        return 0  # There is no food to eat, so no cost
+
+    # When there's only one food, the manhattan distance is admissible and a simple solution
+    if len(food_positions) == 1:
+        return util.manhattanDistance(current_position, food_positions[0])
     
-    # cost of the spanning tree to connect all remaining foo
-    mst_cost = min_spanning_tree_cost(food_positions)
+    # Manhattan distance to the closest point of food
+    min_food_distance = min(util.manhattanDistance(current_position, food) for food in food_positions)
     
-    return min_dist + mst_cost
+    # Minimum spanning Tree algorithm used to find the shortest path to visit all nodes (food_positions)
+    mst_cost = minimum_spanning_tree_cost(food_positions)
+    
+    return min_food_distance + mst_cost
