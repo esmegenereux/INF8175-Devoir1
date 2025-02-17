@@ -164,32 +164,32 @@ def uniformCostSearch(problem:SearchProblem)->List[Direction]:
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 3 ICI
     '''
-    from util import PriorityQueue
     
-    priority_queue = PriorityQueue() # Initialize the priority queue
-    visited = set() # Initialize the visited set
+    priority_queue = util.PriorityQueue() # Initialize the Priority Queue
+    V = set() # Initialize the set of visited nodes
 
-    # Push the start state with cost 0 and an empty path
-    start_state = problem.getStartState()
-    priority_queue.push((start_state, [], 0), 0)  # (current state, path, cost), priority = 0
+    # Push the start state with cost 0 and also an empty path
+    first_position = problem.getStartState()
+    priority_queue.push((first_position, [], 0), 0)  # (current state, path, cost), priority = 0
 
     while not priority_queue.isEmpty():
-        # Pop the state with the lowest total cost
+        # The state with the lowest total cost is poped
         current_state, path, cost = priority_queue.pop()
 
-        # If the current state is the goal, return the path
+        # If current state is the goal --> return the path
         if problem.isGoalState(current_state):
             return path
 
-        # If the state has not been visited, process it
-        if current_state not in visited:
-            visited.add(current_state)
+        # If the state has not been visited --> do it
+        if current_state not in V:
+            V.add(current_state)
 
-            # Get successors and push them into the priority queue
-            for successor, action, step_cost in problem.getSuccessors(current_state):
-                if successor not in visited:
-                    total_cost = cost + step_cost
-                    priority_queue.push((successor, path + [action], total_cost), total_cost)
+            # Get successors, then push them into the queue
+            for succ, action, step_cost in problem.getSuccessors(current_state):
+
+                if succ not in V:
+                    tot_cost = cost + step_cost
+                    priority_queue.push((succ, path + [action], tot_cost), tot_cost)
 
     return []
 
@@ -212,33 +212,33 @@ def aStarSearch(problem:SearchProblem, heuristic=nullHeuristic)->List[Direction]
 
     # Initialize the priority queue, visited set
     priority_queue = PriorityQueue()
-    visited = set()
+    V = set()
 
-    # Push start state with cost 0 and empty path
-    start_state = problem.getStartState()
-    priority_queue.push((start_state, [], 0), 0)  # (current state, path, cost), priority => 0
+    # Push start state with 0 cost and also empty path
+    first_position = problem.getStartState()
+    priority_queue.push((first_position, [], 0), 0)  # (current state, path, cost), priority => 0
 
     while not priority_queue.isEmpty():
-        # Pop the state with the lowest f(n) value
+        # The state with the lowest f(n) value is poped
         current_state, path, cost = priority_queue.pop()
 
-        # If the current state is the goal, return the path
+        # If the current state is the goal --> return the path
         if problem.isGoalState(current_state):
             return path
 
-        # If the state has not been visited, process it
-        if current_state not in visited:
-            visited.add(current_state)
+        # If the state has not been visited --> do it
+        if current_state not in V:
+            V.add(current_state)
 
             # Get successors and push them into the priority queue.
-            for successor, action, step_cost in problem.getSuccessors(current_state):
-                if successor not in visited:
+            for succ, action, step_cost in problem.getSuccessors(current_state):
+                if succ not in V:
                     g_cost = cost + step_cost  # g(n)
-                    h_cost = heuristic(successor, problem)  # h(n)
+                    h_cost = heuristic(succ, problem)  # h(n)
                     f_cost = g_cost + h_cost  # f(n)
-                    priority_queue.push((successor, path + [action], g_cost), f_cost)
+                    priority_queue.push((succ, path + [action], g_cost), f_cost)
 
-    return []  # Return empty path if no solution is found
+    return []  # If no solution is found --> return empty path
 
     util.raiseNotDefined()
 
