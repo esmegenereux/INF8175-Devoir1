@@ -472,28 +472,33 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchType = FoodSearchProblem
 
 from util import manhattanDistance
-from scipy.spatial import distance_matrix
-import numpy as np
 
 def minimum_spanning_tree_cost(points):
-    """Calcule le coût de l'Arbre Couvrant Minimal (MST) pour relier les points."""
+    """Calcule le coût de l'Arbre Couvrant Minimal (MST) en utilisant Prim sans bibliothèques externes."""
     if len(points) <= 1:
         return 0
     
-    dist_matrix = distance_matrix(points, points)
     num_points = len(points)
-    
-    visited = set([0])
-    edges = list(enumerate(dist_matrix[0]))
+    visited = set()
+    edges = []  # Liste des arêtes
     total_cost = 0
     
+    # Commence à partir du premier point
+    visited.add(points[0])
+    for point in points[1:]:
+        edges.append((manhattanDistance(points[0], point), points[0], point))
+    
     while len(visited) < num_points:
-        edges.sort(key=lambda x: x[1])  # Trier les arêtes par coût croissant
-        for idx, cost in edges:
-            if idx not in visited:
-                visited.add(idx)
+        # Trouver l'arête avec le coût minimal connectant un nouveau point
+        edges.sort()
+        for cost, _, next_point in edges:
+            if next_point not in visited:
+                visited.add(next_point)
                 total_cost += cost
-                edges.extend(enumerate(dist_matrix[idx]))
+                # Ajouter les nouvelles connexions
+                for point in points:
+                    if point not in visited:
+                        edges.append((manhattanDistance(next_point, point), next_point, point))
                 break
     
     return total_cost
@@ -504,14 +509,14 @@ def foodHeuristic(state, problem):
     - La distance de Manhattan au point de nourriture le plus proche
     - Le coût du MST reliant tous les points de nourriture
     """
-    position, foodGrid = state
+    current_position, foodGrid = state
     food_positions = foodGrid.asList()
     
     if not food_positions:
         return 0  # Plus de nourriture à collecter
     
     # Distance au point de nourriture le plus proche
-    min_food_distance = min(manhattanDistance(position, food) for food in food_positions)
+    min_food_distance = min(manhattanDistance(current_position, food) for food in food_positions)
     
     # Coût de l'Arbre Couvrant Minimal pour relier toutes les nourritures restantes
     mst_cost = minimum_spanning_tree_cost(food_positions)
